@@ -9,15 +9,24 @@
 
     <TextView
         android:id="@+id/txtResult"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"/>
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:text="Hello World!"
+        />
 
 
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/btnStart"/>
+        android:id="@+id/btnStart"
+        android:text="Compress"/>
+
+    <Button
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnCopy"
+        android:text="Copy"/>
 
 </LinearLayout>

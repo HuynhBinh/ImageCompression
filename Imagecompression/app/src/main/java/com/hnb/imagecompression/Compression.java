@@ -26,8 +26,8 @@ public class Compression
 
     public static Bitmap resizedBitmap;
     public static int MAX_WIDTH = 1200-1;
-    public static String SOURCE_FOLDER = "/asd/dada";
-    public static String DESTINATION_FOLDER = "/dada1";
+    public static String SOURCE_FOLDER = "/asd/dibly.deals";
+    public static String DESTINATION_FOLDER = "/dada3";
     public static String SAVED_FORMAT = "jpg";
 
 
@@ -157,12 +157,12 @@ public class Compression
                 }
 
                 resizedBitmap = Bitmap.createScaledBitmap(bitmap, desiredWidth, desiredHeight, false);
-                resizedBitmap.compress(Bitmap.CompressFormat.WEBP, quantity, fos);
+                resizedBitmap.compress(Bitmap.CompressFormat.JPEG, quantity, fos);
 
             }
             else
             {
-                bitmap.compress(Bitmap.CompressFormat.WEBP, quantity, fos);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quantity, fos);
             }
 
             fos.flush();

@@ -22,18 +22,22 @@ import com.jakewharton.rxbinding.view.RxView;
 
 import java.io.File;
 
+import rx.Notification;
 import rx.Observable;
 import rx.Scheduler;
 import rx.android.plugins.RxAndroidPlugins;
 import rx.android.plugins.RxAndroidSchedulersHook;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity
 {
 
-    Button button;
+    Button btnCompress;
     TextView textView;
+    Button btnCopy;
 
     // handler for received data from service
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver()
@@ -45,7 +49,7 @@ public class MainActivity extends AppCompatActivity
             {
                 final String param = intent.getStringExtra(CompressionService.PARAM);
 
-                if(param.equalsIgnoreCase("done"))
+                if (param.equalsIgnoreCase("done"))
                 {
                     Intent intent1 = new Intent(MainActivity.this, CompressionService.class);
                     intent1.setAction(CompressionService.COMPRESS_ACTION);
@@ -80,29 +84,51 @@ public class MainActivity extends AppCompatActivity
 
 
         textView = (TextView) findViewById(R.id.txtResult);
-        button = (Button) findViewById(R.id.btnStart);
+        btnCompress = (Button) findViewById(R.id.btnStart);
+        btnCopy = (Button) findViewById(R.id.btnCopy);
 
-        button.setOnClickListener(new View.OnClickListener()
+
+        // the old way, using service which will start a thread to compress image, then emit the progress via broadcast receiver
+        btnCompress.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
-                textView.setText("Loading");
+                //textView.setText("Loading");
                 /*Intent intent = new Intent(MainActivity.this, CompressionService.class);
                 intent.setAction(CompressionService.COMPRESS_ACTION);
                 getApplicationContext().startService(intent);*/
-
             }
         });
+        // the old way, using service which will start a thread to compress image, then emit the progress via broadcast receiver
 
-        Observable clickObs = RxView.clicks(button).share();
-        //clickObs.subscribe(view -> textView.setText("loading"));
+        // new way, using rxjava to compress image
+        Observable btnCompressClick = RxView.clicks(btnCompress).share();
+        btnCompressClick.subscribe(view -> textView.setText("loading"));
+        btnCompressClick.subscribe(view -> compress());
+        // new way, using rxjava
 
-        clickObs.subscribe(view -> compress());
+
+        Observable btnCopyClick = RxView.clicks(btnCopy).share();
+        btnCopyClick.subscribe(view -> textView.setText("starting"));
+        btnCopyClick.subscribe(view -> copy());
 
 
+    }
 
+    public void copy()
+    {
+        String extr = Environment.getExternalStorageDirectory().toString();
 
+        File fromFolder = new File(extr + Compression.SOURCE_FOLDER);
+
+        File toFolder = new File(extr + Compression.DESTINATION_FOLDER);
+
+        CompressionObservable.copy(fromFolder, toFolder)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnCompleted(() -> textView.setText("DONE COPY"))
+                .subscribe(imageLink -> textView.setText(imageLink));
     }
 
 
@@ -111,10 +137,7 @@ public class MainActivity extends AppCompatActivity
         String extr = Environment.getExternalStorageDirectory().toString();
 
         File mFolder = new File(extr + Compression.SOURCE_FOLDER);
-        CompressionObservable.compress(mFolder)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(imageLink -> textView.setText(imageLink));
+        CompressionObservable.compress1(mFolder).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).doOnCompleted(() -> textView.setText("DONE")).subscribe(imageLink -> textView.setText(imageLink.intValue() + ""));
     }
 
     @Override
@@ -134,7 +157,7 @@ public class MainActivity extends AppCompatActivity
 
     /**
      * Checks if the app has permission to write to device storage
-     * <p/>
+     * <p>
      * If the app does not has permission then the user will be prompted to grant permissions
      * @param activity
      */
